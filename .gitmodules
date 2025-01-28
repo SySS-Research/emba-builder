@@ -1,0 +1,3 @@
+[submodule "kali-vm"]
+	path = kali-vm
+	url = https://gitlab.com/kalilinux/build-scripts/kali-vm
