@@ -1,0 +1,73 @@
+diff --git a/image.yaml b/image.yaml
+index 079136e..17875c2 100644
+--- a/image.yaml
++++ b/image.yaml
+@@ -98,6 +98,11 @@ actions:
+     chroot: true
+     script: scripts/finish-install.sh apt-sources debconf usergroups
+ 
++  - decription: "Install EMBA"
++    action: run
++    chroot: true
++    script: scripts/emba.sh
++
+   - description: "Final cleanup (from within)"
+     action: run
+     chroot: true
+diff --git a/scripts/emba.sh b/scripts/emba.sh
+new file mode 100755
+index 0000000..440ed72
+--- /dev/null
++++ b/scripts/emba.sh
+@@ -0,0 +1,51 @@
++#!/bin/sh
++
++set -eu
++
++git clone https://github.com/e-m-b-a/emba.git /opt/emba
++cd /opt/emba
++# We can not do the full EMBA installation in this chroot directory since the
++# docker daemon does not run there. Hence, defer the actual installation to the
++# first boot of the VM.
++
++# Install and enable a systemd unit that finishes the EMBA setup.
++cat - >/etc/systemd/system/emba-setup.service <<EOU
++[Unit]
++Description=EMBA Setup
++Requires=network-online.target
++
++[Service]
++Type=oneshot
++WorkingDirectory=/opt/emba
++ExecStart=/opt/emba/installer.sh -d
++ExecStartPost=systemctl disable emba-setup.service
++User=root
++Group=root
++
++[Install]
++WantedBy=multi-user.target
++EOU
++ln -s /etc/systemd/system/emba-setup.service /etc/systemd/system/multi-user.target.wants/
++
++
++# Kali does not currently set up any networking. We need that, obviously.
++cat - > /etc/systemd/network/eth0.network <<EOU
++[Match]
++Name=eth0
++
++[Network]
++DHCP=true
++EOU
++mkdir -p /etc/systemd/system/sockets.target.wants/ /etc/systemd/system/sysinit.target.wants/ /etc/systemd/system/network-online.target.wants/
++ln -s /usr/lib/systemd/system/systemd-networkd.service /etc/systemd/system/dbus-org.freedesktop.network1.service
++ln -s /usr/lib/systemd/system/systemd-networkd.service /etc/systemd/system/multi-user.target.wants/
++ln -s /usr/lib/systemd/system/systemd-networkd.socket /etc/systemd/system/sockets.target.wants/
++ln -s /usr/lib/systemd/system/systemd-network-generator.service /etc/systemd/system/sysinit.target.wants/
++ln -s /usr/lib/systemd/system/systemd-networkd-wait-online.service /etc/systemd/system/network-online.target.wants/
++apt-get install -y systemd-resolved
++mkdir -p /etc/systemd/resolve.conf.d/
++cat - >/etc/systemd/resolve.conf.d/nocrap.conf <<EOC
++[Resolve]
++LLMNR=no
++MulticastDNS=no
++EOC
