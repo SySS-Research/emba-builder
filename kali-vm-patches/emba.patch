@@ -16,10 +16,10 @@ index 079136e..17875c2 100644
      chroot: true
 diff --git a/scripts/emba.sh b/scripts/emba.sh
 new file mode 100755
-index 0000000..7aba27a
+index 0000000..53c1726
 --- /dev/null
 +++ b/scripts/emba.sh
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,148 @@
 +#!/bin/sh
 +
 +set -eu
@@ -113,6 +113,38 @@ index 0000000..7aba27a
 +# Enable SSHd.
 +ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/
 +ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/
++
++# Make the output of EMBA service units visible on TTY1.
++cat - > /etc/systemd/system/emba-status@.service <<EOU
++[Unit]
++Description=EMBA status on %I
++After=systemd-user-sessions.service plymouth-quit-wait.service systemd-journald.service
++ConditionPathExists=/dev/tty0
++
++[Service]
++ExecStart=-/usr/bin/journalctl -f -u emba-setup.service -u autoemba@*.service --no-hostname
++Type=idle
++Restart=always
++RestartSec=0
++StandardInput=tty
++StandardOutput=tty
++TTYPath=/dev/%I
++TTYReset=yes
++TTYVHangup=yes
++TTYVTDisallocate=yes
++IgnoreSIGPIPE=no
++SendSIGHUP=yes
++
++# Unset locale for the console getty since the console has problems
++# displaying some internationalized messages.
++UnsetEnvironment=LANG LANGUAGE LC_CTYPE LC_NUMERIC LC_TIME LC_COLLATE LC_MONETARY LC_MESSAGES LC_PAPER LC_NAME LC_ADDRESS LC_TELEPHONE LC_MEASUREMENT LC_IDENTIFICATION
++
++[Install]
++WantedBy=getty.target
++DefaultInstance=tty1
++EOU
++rm /etc/systemd/system/getty.target.wants/getty@tty1.service
++ln -s /etc/systemd/system/emba-status@.service /etc/systemd/system/getty.target.wants/emba-status@tty1.service
 +
 +
 +# Kali does not currently set up any networking. We need that, obviously.
