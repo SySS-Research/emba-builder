@@ -16,10 +16,10 @@ index 079136e..17875c2 100644
      chroot: true
 diff --git a/scripts/emba.sh b/scripts/emba.sh
 new file mode 100755
-index 0000000..440ed72
+index 0000000..7aba27a
 --- /dev/null
 +++ b/scripts/emba.sh
-@@ -0,0 +1,51 @@
+@@ -0,0 +1,116 @@
 +#!/bin/sh
 +
 +set -eu
@@ -48,6 +48,71 @@ index 0000000..440ed72
 +WantedBy=multi-user.target
 +EOU
 +ln -s /etc/systemd/system/emba-setup.service /etc/systemd/system/multi-user.target.wants/
++
++
++# Enable automatic firmware analysis jobs.
++embauser=autoemba
++embashare=/srv/emba
++# Create a user account for SFTP access.
++useradd -c 'Automatic EMBA firmware analysis' -m -r -U "${embauser}"
++# Set up systemd unit to automaticall analyse firmware uploaded to the share.
++cat - > /etc/systemd/system/autoemba@.path <<EOU
++[Unit]
++Description=Automatic firmware analysis
++
++[Path]
++DirectoryNotEmpty=${embashare}/upload/%i
++MakeDirectory=true
++DirectoryMode=0777
++
++[Install]
++WantedBy=multi-user.target
++EOU
++cat - > /etc/systemd/system/autoemba@.service <<EOU
++[Unit]
++Description=Automatic firmware analysis
++
++[Service]
++Type=oneshot
++WorkingDirectory=/opt/emba
++ExecStart=/usr/local/sbin/autoemba.sh ${embashare} %i
++User=root
++Group=root
++EOU
++cat - > /usr/local/sbin/autoemba.sh <<"EOS"
++#!/bin/bash
++embashare="$1"
++profile="$2"
++# Briefly wait for upload to complete.
++sleep 30
++# Move uploaded files to a temporary working directory.
++tmpdir="$(mktemp -d -p "${embashare}/../")"
++trap "rm -rf -- '${tmpdir}'" EXIT INT KILL QUIT
++mv "${embashare}/upload/${profile}"/* "${tmpdir}"
++for f in "${tmpdir}"/*; do
++    /opt/emba/emba -f "$f" -p "/opt/emba/scan-profiles/${profile}.emba" -l "${embashare}/logs/${f##*/}/"
++    printf 'Analysis of %s using profile %s finished\n' "${f##*/}" "${profile}"
++done
++EOS
++chmod 0755 /usr/local/sbin/autoemba.sh
++# Create SFTP share directory.
++mkdir -p "${embashare}" "${embashare}/upload/" "${embashare}/logs/"
++chmod 0777 "${embashare}/logs/"
++# Make systemd watch a directory for each EMBA scan profile.
++for profile in /opt/emba/scan-profiles/*.emba; do
++    profile="${profile##*/}"
++    profile="${profile%.emba}"
++    ln -s /etc/systemd/system/autoemba@.path "/etc/systemd/system/multi-user.target.wants/autoemba@${profile}.path"
++done
++# Configure SSHd.
++cat - > /etc/ssh/sshd_config.d/emba.conf <<EOF
++Subsystem sftp internal-sftp
++Match User ${embauser}
++  ChrootDirectory ${embashare}
++EOF
++# Enable SSHd.
++ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/
++ln -s /usr/lib/systemd/system/ssh.service /etc/systemd/system/multi-user.target.wants/
 +
 +
 +# Kali does not currently set up any networking. We need that, obviously.
