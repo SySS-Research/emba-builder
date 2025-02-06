@@ -16,7 +16,7 @@ index 079136e..17875c2 100644
      chroot: true
 diff --git a/scripts/emba.sh b/scripts/emba.sh
 new file mode 100755
-index 0000000..53c1726
+index 0000000..2dd25d3
 --- /dev/null
 +++ b/scripts/emba.sh
 @@ -0,0 +1,148 @@
@@ -90,7 +90,7 @@ index 0000000..53c1726
 +trap "rm -rf -- '${tmpdir}'" EXIT INT KILL QUIT
 +mv "${embashare}/upload/${profile}"/* "${tmpdir}"
 +for f in "${tmpdir}"/*; do
-+    /opt/emba/emba -f "$f" -p "/opt/emba/scan-profiles/${profile}.emba" -l "${embashare}/logs/${f##*/}/"
++    flock /var/lock/emba.lock /opt/emba/emba -f "$f" -p "/opt/emba/scan-profiles/${profile}.emba" -l "${embashare}/logs/${f##*/}/"
 +    printf 'Analysis of %s using profile %s finished\n' "${f##*/}" "${profile}"
 +done
 +EOS
