@@ -1,0 +1,20 @@
+diff --git a/scripts/templates/vm-definition.vbox b/scripts/templates/vm-definition.vbox
+index 7ad1def..2f5ec2a 100644
+--- a/scripts/templates/vm-definition.vbox
++++ b/scripts/templates/vm-definition.vbox
+@@ -14,13 +14,13 @@
+       </HardDisks>
+     </MediaRegistry>
+     <Hardware>
+-      <CPU count="2">
++      <CPU count="8">
+         <PAE enabled="true"/>
+         <LongMode enabled="%LongMode%"/>
+         <X2APIC enabled="true"/>
+         <HardwareVirtExLargePages enabled="true"/>
+       </CPU>
+-      <Memory RAMSize="2048"/>
++      <Memory RAMSize="16384"/>
+       <HID Pointing="USBTablet"/>
+       <Boot>
+         <Order position="1" device="HardDisk"/>
