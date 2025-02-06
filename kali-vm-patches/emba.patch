@@ -16,10 +16,10 @@ index 079136e..17875c2 100644
      chroot: true
 diff --git a/scripts/emba.sh b/scripts/emba.sh
 new file mode 100755
-index 0000000..2dd25d3
+index 0000000..8a1729c
 --- /dev/null
 +++ b/scripts/emba.sh
-@@ -0,0 +1,148 @@
+@@ -0,0 +1,151 @@
 +#!/bin/sh
 +
 +set -eu
@@ -98,11 +98,13 @@ index 0000000..2dd25d3
 +# Create SFTP share directory.
 +mkdir -p "${embashare}" "${embashare}/upload/" "${embashare}/logs/"
 +chmod 0777 "${embashare}/logs/"
++autoemba_services=''
 +# Make systemd watch a directory for each EMBA scan profile.
 +for profile in /opt/emba/scan-profiles/*.emba; do
 +    profile="${profile##*/}"
 +    profile="${profile%.emba}"
 +    ln -s /etc/systemd/system/autoemba@.path "/etc/systemd/system/multi-user.target.wants/autoemba@${profile}.path"
++    autoemba_services="${autoemba_services} -u autoemba@${profile}.service"
 +done
 +# Configure SSHd.
 +cat - > /etc/ssh/sshd_config.d/emba.conf <<EOF
@@ -119,10 +121,11 @@ index 0000000..2dd25d3
 +[Unit]
 +Description=EMBA status on %I
 +After=systemd-user-sessions.service plymouth-quit-wait.service systemd-journald.service
++Before=emba-setup.service
 +ConditionPathExists=/dev/tty0
 +
 +[Service]
-+ExecStart=-/usr/bin/journalctl -f -u emba-setup.service -u autoemba@*.service --no-hostname
++ExecStart=-/usr/bin/journalctl -f -u emba-setup.service ${autoemba_services} --no-hostname
 +Type=idle
 +Restart=always
 +RestartSec=0
