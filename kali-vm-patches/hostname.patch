@@ -74,3 +74,23 @@ index 314ed5b..468e91b 100755
  [ "$LOCALE"   ] && point "locale: $(b $LOCALE)"
  [ "$TIMEZONE" ] && point "timezone: $(b $TIMEZONE)"
  [ "$KEEP"     ] && point "keep temporary files: $(b $KEEP)"
+diff --git a/main.yaml b/main.yaml
+index 18dd0b1..f00afa0 100644
+--- a/main.yaml
++++ b/main.yaml
+@@ -11,6 +11,7 @@
+ {{- $zip := .zip }}
+ 
+ {{- $desktop := .desktop }}
++{{- $hostname := .hostname }}
+ {{- $locale := .locale }}
+ {{- $password := .password }}
+ {{- $packages := .packages }}
+@@ -33,6 +34,7 @@ actions:
+       branch: {{ $branch }}
+       mirror: {{ $mirror }}
+       desktop: {{ $desktop }}
++      hostname: {{ $hostname }}
+       locale: {{ $locale }}
+       password: {{ $password }}
+       packages: {{ $packages }}
