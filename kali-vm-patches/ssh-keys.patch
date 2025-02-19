@@ -1,0 +1,15 @@
+diff --git a/image.yaml b/image.yaml
+index 079136e..1cca122 100644
+--- a/image.yaml
++++ b/image.yaml
+@@ -108,6 +108,10 @@ actions:
+     chroot: false
+     script: scripts/cleanup-out.sh
+ 
++  - description: "Install SSH keys"
++    action: overlay
++    source: overlays/ssh-keys
++
+ {{ if eq $zip "true" }}
+   - description: "Fill unallocated blocks with zeroes"
+     action: run
