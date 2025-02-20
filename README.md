@@ -51,6 +51,11 @@ Therefore, the EMBA setup will automatically be finished on first boot.
 This will take a while.
 Monitor the `emba-setup` Systemd unit or the VM's CPU and disk load to check on
 the progress.
+The output of the setup process can be seen on the VM's first TTY.
+
+**Important:** As the VM's first TTY is used to display EMBA logs, it can not
+be used to log in to the system. Use the second or any other TTY instead. Or
+use SSH, of course.
 
 Updating
 --------
