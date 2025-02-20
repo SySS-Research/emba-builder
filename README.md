@@ -65,3 +65,58 @@ It may be easier, though, to simply build an new image from time to time to get
 the latest versions of Kali and EMBA.
 VM management software may provide a comfortable way to overwrite the disk
 image of the existing VM, rather than reconfiguring it from scratch.
+
+Using EMBA
+----------
+
+To actually use EMBA, you may simply log in via SSH or the console, copy the
+firmware into the VM and run EMBA with the desired parameters.
+However, this is rather cumbersome as it requires typing several commands
+manually.
+
+To make things simpler (for simple use cases), there is another option:
+Connect to the VM via SFTP as the user `autoemba`. You will see the two
+directories `upload` and `log`. `upload` contains subdirectories named like
+EMBA scan profiles. Simply upload a firmware image into one of those
+directories to trigger a scan with the respective profile.
+
+It takes about 30 seconds before the scan starts. The firmware is then removed
+from the `upload` directory and a directory named like the firmware file is
+created in `logs`. EMBA will write the scan results into this directory.
+
+Example console-based workflow (GUI SFTP client work similarly):
+
+```
+sftp autoemba@192.168.122.2
+Connected to 192.168.122.2.
+sftp> ls
+logs    upload
+sftp> ls upload
+upload/default-sbom                upload/default-scan
+upload/default-scan-emulation      upload/default-scan-gpt
+upload/default-scan-long           upload/default-scan-no-notify
+upload/default-vex                 upload/example-disable-module
+upload/full-scan                   upload/quick-sbom
+upload/quick-scan
+sftp> put sample-firmware.img upload/default-scan/
+Uploading sample-firmware.img to /upload/default-scan/sample-firmware.img
+sample-firmware.img                  100% 1337MB   1.3GB/s   00:00
+sftp> ls upload/default-scan
+upload/default-scan/sample-firmware.img
+sftp> ls upload/default-scan
+sftp> ls logs
+logs/sample-firmware.img
+sftp> ls logs/sample-firmware.img/
+logs/sample-firmware.img/csv_logs
+logs/sample-firmware.img/emba.log
+logs/sample-firmware.img/etc
+logs/sample-firmware.img/firmware
+logs/sample-firmware.img/html-report
+logs/sample-firmware.img/json_logs
+logs/sample-firmware.img/orig_user.log
+logs/sample-firmware.img/print_running_modules.pid
+logs/sample-firmware.img/tmp
+```
+
+The console output of the scans can be monitored on the VM's first TTY, similar
+to the output of the setup process.
