@@ -83,6 +83,9 @@ directories to trigger a scan with the respective profile.
 It takes about 30 seconds before the scan starts. The firmware is then removed
 from the `upload` directory and a directory named like the firmware file is
 created in `logs`. EMBA will write the scan results into this directory.
+Once the scan has finished, the directory will be compressed into a `.tar.gz` 
+archive so the results can be downloaded easily. The raw output directory will
+be deleted after creating the archive.
 
 Example console-based workflow (GUI SFTP client work similarly):
 
@@ -116,6 +119,11 @@ logs/sample-firmware.img/json_logs
 logs/sample-firmware.img/orig_user.log
 logs/sample-firmware.img/print_running_modules.pid
 logs/sample-firmware.img/tmp
+sftp>
+[...wait...]
+sftp> ls logs
+logs/sample-firmware.img.tar.gz
+sftp> get logs/sample-firmware.img.tar.gz
 ```
 
 The console output of the scans can be monitored on the VM's first TTY, similar
