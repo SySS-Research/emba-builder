@@ -12,7 +12,7 @@ Setup
 
 1. Clone this repository
 2. Run `setup.sh` (or manually clone the submodule and apply the patches from the `kali-vm-patches` directory)
-3. Optionally: Add your SSH public key to `kali-vm/overlays/ssh-keys/home/emba/.ssh/authorized_keys` and/or `kali-vm/overlays/ssh-keys/home/autoemba/.ssh/authorized_keys`. Change the user name in the first path if the primary user is not named `emba` (`-U` option to `build.sh`, see below)
+3. Optionally: Add your SSH public key to `kali-vm/overlays/ssh-keys/home/emba/.ssh/authorized_keys` and/or `kali-vm/overlays/ssh-keys/home/autoemba/.ssh/authorized_keys`. Change the user name in the first path if the primary user is not named `emba` (`-U` option to `build.sh`, see below). Note that these files and directories *must not* be group or world writable for OpenSSH to accept them!
 
 Usage
 -----
